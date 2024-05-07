@@ -1,0 +1,9 @@
+---
+- name: 'Update kernel on masters'
+  hosts: all
+  gather_facts: true
+  become: true
+  become_method: su
+  serial: 1
+  roles:
+    - { role: update_kernel_on_node }

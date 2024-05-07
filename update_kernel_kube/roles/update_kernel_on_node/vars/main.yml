@@ -1,0 +1,4 @@
+---
+  kubectl: '/usr/local/bin/kubectl'
+  drain_timeout: '360s'
+  drain_grace_period: 300

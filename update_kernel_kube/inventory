@@ -1,0 +1,10 @@
+[kube_masters]
+filip-lab-master1
+filip-lab-master2
+filip-lab-master3
+
+[kube_workers]
+filip-lab-worker1
+filip-lab-worker2
+filip-lab-worker3
+

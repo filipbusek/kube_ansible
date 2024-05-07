@@ -1,0 +1,61 @@
+---
+- name: 'Check if kubernetes node is ready'
+  ansible.builtin.command: >
+    {{ kubectl }} get node {{ inventory_hostname }}
+    -o jsonpath='{ range .status.conditions[?(@.type == "Ready")].status}{@}{ end }'
+  register: kubectl_node_ready
+  delegate_to: "{{ groups['kube_masters'][0] }}"
+  failed_when: false
+  changed_when: false
+
+- name: 'Check if kubernetes node is scheduable'
+  ansible.builtin.command: >
+    {{ kubectl }} get node {{ inventory_hostname }} -o jsonpath='{ .spec.unschedulable }'
+  register: kubectl_node_scheduable
+  delegate_to: "{{ groups['kube_masters'][0] }}"
+  failed_when: false
+  changed_when: false
+
+- name: Check if node can be cordoned
+  ansible.builtin.set_fact:
+    able_to_cordon: "{{ True if kubectl_node_ready.stdout == 'True' and not kubectl_node_scheduable.stdout_lines else False }}"
+
+- name: 'Node cannot be cordoned'
+  ansible.builtin.debug:
+    msg: "Node {{ inventory_hostname }} cannot be cordoned"
+  when: able_to_cordon != True
+
+- name: 'Cordon node {{ inventory_hostname }}'
+  ansible.builtin.command: >
+    {{ kubectl }} cordon {{ inventory_hostname }}
+  delegate_to: "{{ groups['kube_masters'][0] }}"
+  register: kubectl_node_cordon
+  when: able_to_cordon == True
+
+- name: 'Check again if kubernetes node is scheduable'
+  ansible.builtin.command: >
+    {{ kubectl }} get node {{ inventory_hostname }} -o jsonpath='{ .spec.unschedulable }'
+  register: kubectl_node_scheduable
+  delegate_to: "{{ groups['kube_masters'][0] }}"
+  failed_when: false
+  changed_when: false
+
+- name: 'Check if node is ready to be drained'
+  ansible.builtin.set_fact:
+    ready_to_drain: "{{ True if able_to_cordon == True and kubectl_node_scheduable.stdout == 'true' else False }}"
+
+- name: 'Node cannot be drained. Skipping'
+  ansible.builtin.debug:
+    msg: Node {{ inventory_hostname }} cannot be drained. Skipping
+  when: ready_to_drain != True
+
+- name: 'Drain node {{ inventory_hostname }}'
+  ansible.builtin.command: >
+      {{ kubectl }} drain
+      --force
+      --ignore-daemonsets
+      --grace-period {{ drain_grace_period }}
+      --timeout {{ drain_timeout }}
+      --delete-emptydir-data {{ inventory_hostname }}
+  when: ready_to_drain == True
+  delegate_to: "{{ groups['kube_masters'][0] }}"
