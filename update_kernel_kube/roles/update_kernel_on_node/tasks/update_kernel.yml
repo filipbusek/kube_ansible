@@ -1,5 +1,5 @@
 ---
-- name: 'Update dnf cache'
+- name: 'Update apt cache'
   ansible.builtin.apt:
     update_cache: yes
   when: ansible_pkg_mgr == "apt"
