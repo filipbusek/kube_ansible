@@ -2,3 +2,11 @@
   kubectl: '/usr/local/bin/kubectl'
   drain_timeout: '360s'
   drain_grace_period: 300
+
+  zfs: '/usr/sbin/zfs'
+
+  containerd_dataset: 'rpool/nobackup/containerd'
+  containerd_mountpoint: '/var/lib/containerd'
+
+  snapshotter_dataset: 'rpool/nobackup/containerd/snapshotter'
+  snapshotter_mountpoint: '/var/lib/containerd/io.containerd.snapshotter.v1.zfs'

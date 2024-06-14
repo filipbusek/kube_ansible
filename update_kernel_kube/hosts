@@ -5,6 +5,5 @@ filip-lab-master3
 
 [kube_workers]
 #filip-lab-worker1
-filip-lab-worker2
-filip-lab-worker3
-
+#filip-lab-worker2
+#filip-lab-worker3
