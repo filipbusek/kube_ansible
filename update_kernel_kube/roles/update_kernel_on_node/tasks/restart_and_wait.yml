@@ -19,8 +19,7 @@
     - "{{ zfs }} create -o mountpoint={{ snapshotter_mountpoint }} {{ snapshotter_dataset }}"
 
 - name: 'Start kubelet and containerd'
-  ansible.builtin.command: >
-    systemctl enable --now kubelet.service containerd.service
+  ansible.builtin.command: systemctl enable --now kubelet.service containerd.service
 
 - name: 'Wait for node to be active ready again'
   ansible.builtin.command: >
