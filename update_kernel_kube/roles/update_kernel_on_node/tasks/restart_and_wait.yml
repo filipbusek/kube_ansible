@@ -1,7 +1,7 @@
 ---
-- name: 'Disable kubelet and containerd'
+- name: 'Disable and stop kubelet and containerd'
   ansible.builtin.service:
-    name: {{ item }}
+    name: "{{ item }}"
     state: stopped
     enabled: False
   with_items: 
@@ -24,10 +24,17 @@
     - "{{ zfs }} create {{ containerd_dataset }} -o mountpoint={{ containerd_mountpoint }}"
     - "{{ zfs }} create -o mountpoint={{ snapshotter_mountpoint }} {{ snapshotter_dataset }}"
 
-- name: 'Start kubelet and containerd'
+- name: 'Mount datasets for containerd if necessary'
+  ansible.builtin.command: "{{ item }}"
+  loop:
+    - "{{ zfs }} mount {{ containerd_dataset }}"
+    - "{{ zfs }} mount {{ snapshotter_dataset }}"
+  ignore_errors: true
+
+- name: 'Enable and start kubelet and containerd'
   ansible.builtin.service:
-    name: {{ item }}
-    state: stopped
+    name: "{{ item }}"
+    state: restarted
     enabled: True
   with_items: 
     - kubelet
