@@ -1,6 +1,12 @@
 ---
 - name: 'Disable kubelet and containerd'
-  ansible.builtin.command: systemctl disable --now kubelet.service containerd.service
+  ansible.builtin.service:
+    name: {{ item }}
+    state: stopped
+    enabled: False
+  with_items: 
+    - kubelet
+    - containerd
 
 - name: 'Restart node {{ inventory_hostname }}'
   ansible.builtin.reboot:
@@ -19,7 +25,13 @@
     - "{{ zfs }} create -o mountpoint={{ snapshotter_mountpoint }} {{ snapshotter_dataset }}"
 
 - name: 'Start kubelet and containerd'
-  ansible.builtin.command: systemctl enable --now kubelet.service containerd.service
+  ansible.builtin.service:
+    name: {{ item }}
+    state: stopped
+    enabled: True
+  with_items: 
+    - kubelet
+    - containerd
 
 - name: 'Wait for node to be active ready again'
   ansible.builtin.command: >
